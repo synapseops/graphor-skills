@@ -1,0 +1,14 @@
+{
+  "name": "graphor-skills",
+  "owner": {
+    "name": "SynapseOps",
+    "url": "https://graphorlm.com"
+  },
+  "plugins": [
+    {
+      "name": "graphor-skills",
+      "source": ".",
+      "description": "Graphor document intelligence - MCP workflow, TypeScript SDK, and Python SDK skills."
+    }
+  ]
+}
