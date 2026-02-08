@@ -4,6 +4,25 @@ Claude Code plugin for [Graphor](https://graphorlm.com) — document intelligenc
 
 This plugin provides **MCP server connectivity** and **domain expertise skills** for working with Graphor, following the [Agent Skills](https://agentskills.io) open standard.
 
+## Quick Start
+
+```
+/plugin marketplace add synapseops/graphor-skills
+/plugin install graphor@graphor-skills
+```
+
+Set your API key when prompted (get one from the [Graphor dashboard](https://graphorlm.com)):
+
+```bash
+export GRAPHOR_API_KEY="grlm_your_api_key_here"
+```
+
+Then just ask:
+
+```
+"Upload https://example.com/docs to Graphor and summarize it"
+```
+
 ## What's Included
 
 | Component | Description |
@@ -26,48 +45,48 @@ Activates when writing Python code with the `graphor` PyPI package. Covers sync 
 
 ## Installation
 
-### Claude Code — Plugin Marketplace
+### Claude Code — Plugin Marketplace (recommended)
 
 ```
 /plugin marketplace add synapseops/graphor-skills
-/plugin install graphor-skills
-```
-
-### Claude Code — Direct
-
-```bash
-claude --add-dir /path/to/graphor-skills
+/plugin install graphor@graphor-skills
 ```
 
 ### Project-Level (team-wide)
 
-Copy the `skills/` directory into your project's `.claude/skills/`:
+Copy the skills into your project's `.claude/skills/`:
 
 ```bash
-cp -r skills/* your-project/.claude/skills/
+cp -r plugin/skills/* your-project/.claude/skills/
 ```
 
 ### Personal (all projects)
 
 ```bash
-cp -r skills/* ~/.claude/skills/
+cp -r plugin/skills/* ~/.claude/skills/
 ```
 
-## Configuration
+## Repository Structure
 
-Set your Graphor API key as an environment variable:
-
-```bash
-export GRAPHOR_API_KEY="grlm_your_api_key_here"
 ```
-
-The MCP server (`graphor-mcp`) uses this key automatically. Get your API key from the [Graphor dashboard](https://graphorlm.com).
+graphor-skills/
+├── .claude-plugin/
+│   └── marketplace.json           # Marketplace catalog
+├── plugin/                        # The Graphor plugin
+│   ├── .claude-plugin/
+│   │   └── plugin.json            # Plugin metadata
+│   ├── .mcp.json                  # MCP server config
+│   └── skills/
+│       ├── graphor-workflow/      # MCP workflow (hub + 6 rules)
+│       ├── graphor-ts-sdk/        # TypeScript SDK patterns
+│       └── graphor-py-sdk/        # Python SDK patterns
+├── LICENSE
+└── README.md
+```
 
 ## Compatibility
 
 This plugin follows the [Agent Skills open standard](https://agentskills.io), making the skills portable across 27+ agent tools including Claude Code, Cursor, VS Code, GitHub Copilot, Gemini CLI, and more.
-
-The MCP server configuration (`.mcp.json`) is specific to Claude Code and compatible tools.
 
 ## Links
 

@@ -1,0 +1,9 @@
+{
+  "graphor": {
+    "command": "npx",
+    "args": ["-y", "graphor-mcp"],
+    "env": {
+      "GRAPHOR_API_KEY": ""
+    }
+  }
+}

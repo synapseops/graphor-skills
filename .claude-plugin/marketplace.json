@@ -1,14 +1,15 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "graphor-skills",
+  "description": "Graphor document intelligence skills and MCP server for Claude Code.",
   "owner": {
-    "name": "SynapseOps",
-    "url": "https://graphorlm.com"
+    "name": "SynapseOps"
   },
   "plugins": [
     {
-      "name": "graphor-skills",
-      "source": ".",
-      "description": "Graphor document intelligence - MCP workflow, TypeScript SDK, and Python SDK skills."
+      "name": "graphor",
+      "description": "Graphor document intelligence - upload, process, and query documents via MCP, plus TypeScript and Python SDK coding assistance.",
+      "source": "./plugin"
     }
   ]
 }
