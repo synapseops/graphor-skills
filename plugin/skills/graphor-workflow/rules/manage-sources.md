@@ -7,6 +7,8 @@ metadata:
 
 # Manage Sources
 
+Use the Graphor MCP tools for all operations. Never make direct API calls.
+
 Operations for listing, inspecting, and deleting documents.
 
 ## List sources
@@ -39,3 +41,4 @@ The response includes `file_name`, `status`, `message`, `project_id`, `project_n
 
 - **Do not delete documents without confirmation from the user.** Deletion is irreversible.
 - **Do not assume a file exists.** Check via list first if uncertain.
+- **Do not make direct curl or HTTP calls** to the Graphor API. Always use MCP tools.

@@ -1,25 +1,14 @@
 # Graphor API Reference
 
-## Authentication
-
-All requests require a Bearer token:
-
-```
-Authorization: Bearer YOUR_API_TOKEN
-Content-Type: application/json
-```
-
-Tokens are scoped per project. Manage them via the Graphor dashboard.
+> **This reference is for understanding only.** Do NOT use these endpoints to make direct curl/HTTP calls. Always use the Graphor MCP tools, which handle authentication securely without exposing credentials to the conversation.
 
 ## Base URL
-
-The SDK connects to:
 
 ```
 https://api.graphorlm.com/api/public/v1
 ```
 
-All endpoint paths below are relative to this base.
+All endpoint paths below are relative to this base. Authentication is handled automatically by the MCP server.
 
 ---
 
@@ -33,6 +22,7 @@ All endpoint paths below are relative to this base.
   - `file` (binary, required) — the file to upload
   - `partition_method` (string, optional) — `basic`, `hi_res`, `hi_res_ft`, `mai`, `graphorlm`
 - **Response**: `PublicSource` — `{ file_name, file_id, file_size, file_source, file_type, message, project_id, project_name, status, partition_method? }`
+- **Initial status**: `"New"` — source accepted but NOT processed. Must call parse next.
 
 ### Upload from URL
 
@@ -76,6 +66,7 @@ All endpoint paths below are relative to this base.
 
 - **GET** `/sources`
 - **Response**: Array of `PublicSource` objects
+- **Status values**: `"New"` (uploaded, not processed), `"Processing"`, `"Completed"`, `"Failed"`
 
 ### Delete Source
 

@@ -7,7 +7,11 @@ metadata:
 
 # Retrieve Chunks
 
+Use the Graphor MCP tools for retrieval. Never make direct API calls.
+
 Get raw, scored text passages from documents for use in custom RAG pipelines. Unlike ask-sources (which returns a synthesized answer), this returns the relevant source chunks directly.
+
+**Prerequisite**: Documents must have status `"Completed"` before retrieval. If status is `"New"`, you must call parse first.
 
 ## When to use
 
@@ -41,4 +45,5 @@ Typical pattern:
 
 - **Do not use retrieve-chunks when ask-sources would suffice.** If you just want an answer, use ask-sources — it handles RAG internally with better quality.
 - **Do not ignore scores.** Low-scoring chunks may be noise. Consider filtering by a score threshold.
-- **Do not retrieve from unprocessed documents.** Same rule as always — verify `"Completed"` status first.
+- **Do not retrieve from documents in `"New"` or `"Processing"` status.** Verify `"Completed"` status first. If `"New"`, call parse first.
+- **Do not make direct curl or HTTP calls** to the Graphor API. Always use MCP tools.

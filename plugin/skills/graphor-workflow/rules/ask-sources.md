@@ -7,7 +7,11 @@ metadata:
 
 # Ask Sources
 
+Use the Graphor MCP tools for all queries. Never make direct API calls.
+
 The primary way to query documents. Supports conversational memory, file scoping, and adjustable reasoning depth.
+
+**Prerequisite**: Documents must have status `"Completed"` before querying. If status is `"New"`, you must call parse first. See [async-processing](async-processing.md).
 
 ## Basic usage
 
@@ -50,7 +54,8 @@ You can pass an `output_schema` (JSON Schema) to get structured data alongside t
 
 ## Anti-patterns
 
-- **Do not ask about documents that are still processing.** Always verify `"Completed"` status first.
+- **Do not ask about documents in `"New"` or `"Processing"` status.** Always verify `"Completed"` status first. If `"New"`, call parse first.
+- **Do not make direct curl or HTTP calls** to the Graphor API. Always use MCP tools.
 - **Do not forget to pass `conversation_id` for follow-ups.** Without it, each question starts from scratch with no context.
 - **Do not use `accurate` thinking level for simple lookups.** It's slower for no benefit on simple queries.
 - **Do not query all documents when only specific ones are relevant.** Scope with `file_ids` for better results.
