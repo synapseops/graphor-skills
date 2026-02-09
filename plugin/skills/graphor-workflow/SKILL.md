@@ -7,26 +7,33 @@ description: >
   for RAG, or managing document sources in Graphor.
 ---
 
-You have access to the Graphor MCP server. **Always use MCP tools for all Graphor operations.** Never make direct API calls via curl, fetch, or any HTTP client — the MCP server handles authentication and requests securely without exposing credentials.
+You have access to the Graphor MCP server for interacting with the Graphor API.
 
-## Mandatory: Use MCP tools only
+## How to use MCP tools vs direct API calls
 
-- **DO**: Use the Graphor MCP tools provided by the `graphor` MCP server
-- **DO NOT**: Make curl commands, use fetch/axios, or call the Graphor REST API directly
-- **DO NOT**: Reference or use API URLs, Bearer tokens, or auth headers in Bash commands
-- **WHY**: Direct API calls expose the user's API key to the conversation. The MCP server keeps credentials local and secure.
+**Use MCP tools** for all operations that don't involve local files: parse, ask, extract, retrieve chunks, list, delete. The MCP server handles authentication securely.
+
+**For local file uploads**, the current MCP server uses a sandboxed execute container that cannot access the user's local filesystem. Use Bash with curl to upload local files directly. This is the documented workaround until the MCP server adds a dedicated file upload tool. For URL, GitHub, and YouTube uploads, use MCP tools.
+
+## Prerequisites
+
+The user must set their Graphor API key as a shell environment variable:
+
+```bash
+export GRAPHOR_API_KEY="grlm_your_api_key_here"
+```
+
+Add this to `~/.bashrc`, `~/.zshrc`, or equivalent. The `.mcp.json` uses `${GRAPHOR_API_KEY}` expansion to read this value. If MCP operations return auth errors, the key is not set correctly.
 
 ## Core workflow: Upload → Process → Query
 
 This is a **three-step workflow**. All three steps are required:
 
-1. **Upload** a source (file, URL, GitHub, YouTube) — returns status `"New"`
-2. **Process** the source by calling parse — triggers async processing (`"New"` → `"Processing"` → `"Completed"`)
-3. **Query** the source (ask, extract, or retrieve chunks) — only after status is `"Completed"`
+1. **Upload** a source — returns status `"New"`
+2. **Process** the source by calling parse via MCP — triggers async processing (`"New"` → `"Processing"` → `"Completed"`)
+3. **Query** the source (ask, extract, or retrieve chunks) via MCP — only after status is `"Completed"`
 
-**Upload alone does NOT start processing.** You must explicitly call the process/parse operation after upload.
-
-See [async-processing](rules/async-processing.md) for the full status flow.
+**Upload alone does NOT start processing.** You must explicitly call parse after upload.
 
 ## How to use
 
@@ -43,8 +50,9 @@ Load the relevant rule for the task at hand:
 
 ## Universal rules
 
-1. **Always use MCP tools** — never curl or direct HTTP calls to Graphor API.
-2. **Always use `file_ids` over `file_names`** — `file_names` is deprecated. Store `file_id` from upload responses.
-3. **Always process after upload** — upload returns `"New"`, you must call parse to start processing.
-4. **Always check status is `"Completed"`** before querying documents.
-5. **Handle errors gracefully** — 401 means bad API key, 404 means file not found or not yet processed, 429 means back off.
+1. **Use MCP tools for all non-upload operations** — parse, ask, extract, list, delete all go through MCP.
+2. **Use Bash curl for local file uploads** — the MCP execute container cannot access the local filesystem. See [upload-sources](rules/upload-sources.md).
+3. **Always use `file_ids` over `file_names`** — `file_names` is deprecated. Store `file_id` from upload responses.
+4. **Always process after upload** — upload returns `"New"`, you must call parse to start processing.
+5. **Always check status is `"Completed"`** before querying documents.
+6. **If you get auth errors**, the `GRAPHOR_API_KEY` environment variable is not set. Tell the user to run `export GRAPHOR_API_KEY="grlm_..."` and restart Claude Code.

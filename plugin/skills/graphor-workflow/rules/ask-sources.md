@@ -55,7 +55,7 @@ You can pass an `output_schema` (JSON Schema) to get structured data alongside t
 ## Anti-patterns
 
 - **Do not ask about documents in `"New"` or `"Processing"` status.** Always verify `"Completed"` status first. If `"New"`, call parse first.
-- **Do not make direct curl or HTTP calls** to the Graphor API. Always use MCP tools.
+- **Use MCP tools for queries** — not curl. Only local file upload requires curl.
 - **Do not forget to pass `conversation_id` for follow-ups.** Without it, each question starts from scratch with no context.
 - **Do not use `accurate` thinking level for simple lookups.** It's slower for no benefit on simple queries.
 - **Do not query all documents when only specific ones are relevant.** Scope with `file_ids` for better results.

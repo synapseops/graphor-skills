@@ -65,4 +65,4 @@ Use `file_id` (preferred) or `file_name` to identify the document.
 - **Do not poll in a tight loop.** Use reasonable intervals (10+ seconds between checks).
 - **Do not query documents in `"New"` or `"Processing"` status.** Wait for `"Completed"`.
 - **Do not reprocess without reason.** The default parsing method works well for most documents. Only reprocess if results are unsatisfactory.
-- **Do not make direct API calls.** Always use MCP tools.
+- **Use MCP tools for parse and status checking** — not curl. Only local file upload requires curl.

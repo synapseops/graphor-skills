@@ -49,4 +49,4 @@ Same as ask-sources: `fast`, `balanced`, `accurate` (default). Use `accurate` fo
 - **Do not skip `user_instruction`.** The instruction is critical for guiding the model. A schema alone is ambiguous — the instruction tells the model what to look for and how to interpret it.
 - **Do not extract from documents in `"New"` or `"Processing"` status.** Always verify `"Completed"` status first. If `"New"`, call parse first.
 - **Do not use `file_names` for identification.** Use `file_ids` — `file_names` is deprecated.
-- **Do not make direct curl or HTTP calls** to the Graphor API. Always use MCP tools.
+- **Use MCP tools for extraction** — not curl. Only local file upload requires curl.

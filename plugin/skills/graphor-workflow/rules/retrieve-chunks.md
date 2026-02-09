@@ -46,4 +46,4 @@ Typical pattern:
 - **Do not use retrieve-chunks when ask-sources would suffice.** If you just want an answer, use ask-sources — it handles RAG internally with better quality.
 - **Do not ignore scores.** Low-scoring chunks may be noise. Consider filtering by a score threshold.
 - **Do not retrieve from documents in `"New"` or `"Processing"` status.** Verify `"Completed"` status first. If `"New"`, call parse first.
-- **Do not make direct curl or HTTP calls** to the Graphor API. Always use MCP tools.
+- **Use MCP tools for retrieval** — not curl. Only local file upload requires curl.

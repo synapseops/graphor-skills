@@ -1,6 +1,6 @@
 # Graphor API Reference
 
-> **This reference is for understanding only.** Do NOT use these endpoints to make direct curl/HTTP calls. Always use the Graphor MCP tools, which handle authentication securely without exposing credentials to the conversation.
+> **This reference is for understanding only.** Use Graphor MCP tools for all operations except local file uploads. The MCP server handles authentication securely. For local file uploads only, use Bash curl with `$GRAPHOR_API_KEY` — see [upload-sources](../rules/upload-sources.md).
 
 ## Base URL
 
