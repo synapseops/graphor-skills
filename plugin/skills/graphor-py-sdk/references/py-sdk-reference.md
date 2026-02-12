@@ -49,21 +49,21 @@ Use as async context manager: `async with AsyncGraphor(...) as client:`
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.parse(file_id=, file_name=, partition_method=)` | At least one of `file_id`/`file_name` required | `PublicSource` |
+| `sources.parse(file_id=, file_name=, partition_method=)` | At least one of `file_id`/`file_name` required. Prefer `file_id` (`file_name` is deprecated) | `PublicSource` |
 
 ### Sources — Manage
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
 | `sources.list()` | none | `list[PublicSource]` |
-| `sources.delete(file_id=, file_name=)` | At least one required. Prefer `file_id` | `SourceDeleteResponse` |
-| `sources.load_elements(file_id=, file_name=, page=, page_size=, filter=)` | `filter?`: `{ elements_to_remove?, page_numbers?, type? }` | `SourceLoadElementsResponse` |
+| `sources.delete(file_id=, file_name=)` | At least one required. Prefer `file_id` (`file_name` is deprecated) | `SourceDeleteResponse` |
+| `sources.load_elements(file_id=, file_name=, page=, page_size=, filter=)` | Prefer `file_id` (`file_name` is deprecated). `filter?`: `{ elements_to_remove?, page_numbers?, type? }` | `SourceLoadElementsResponse` |
 
 ### Chat
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.ask(question=, conversation_id=, reset=, file_ids=, file_names=, output_schema=, thinking_level=)` | See below | `SourceAskResponse` |
+| `sources.ask(question=, conversation_id=, reset=, file_ids=, file_names=, output_schema=, thinking_level=)` | Prefer `file_ids` (`file_names` is deprecated) | `SourceAskResponse` |
 
 **`thinking_level`**: `"fast"` | `"balanced"` | `"accurate"` (default)
 
@@ -71,13 +71,13 @@ Use as async context manager: `async with AsyncGraphor(...) as client:`
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.extract(file_ids=, file_names=, user_instruction=, output_schema=, thinking_level=)` | At least one of `file_ids`/`file_names` required | `SourceExtractResponse` |
+| `sources.extract(file_ids=, file_names=, user_instruction=, output_schema=, thinking_level=)` | At least one of `file_ids`/`file_names` required. Prefer `file_ids` (`file_names` is deprecated) | `SourceExtractResponse` |
 
 ### RAG
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.retrieve_chunks(query=, file_ids=, file_names=)` | `query`: str | `SourceRetrieveChunksResponse` |
+| `sources.retrieve_chunks(query=, file_ids=, file_names=)` | `query`: str. Prefer `file_ids` (`file_names` is deprecated) | `SourceRetrieveChunksResponse` |
 
 ## Response Types
 
@@ -85,7 +85,7 @@ All response objects are Pydantic models with typed fields.
 
 | Type | Fields |
 |------|--------|
-| `PublicSource` | `file_name`, `file_id?`, `file_size`, `file_source`, `file_type`, `message`, `project_id`, `project_name`, `status`, `partition_method?` |
+| `PublicSource` | `file_name`, `file_id?`, `file_size`, `file_source`, `file_type`, `message`, `project_id`, `project_name`, `status`, `partition_method?`. `status` values: `"New"`, `"Waiting"`, `"Uploading"`, `"Not parsed"`, `"Processing"`, `"Processed"`, `"Completed"`, `"Failed"`, `"Processing failed"`, `"Upload failed"`, `"Service unavailable"` |
 | `SourceAskResponse` | `answer`, `conversation_id`, `structured_output?`, `raw_json?` |
 | `SourceExtractResponse` | `file_ids`, `file_names`, `structured_output`, `raw_json` |
 | `SourceRetrieveChunksResponse` | `query`, `total`, `chunks` (each: `text`, `file_name?`, `file_id?`, `page_number?`, `score?`, `metadata?`) |

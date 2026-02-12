@@ -26,7 +26,7 @@ const client = new Graphor({ apiKey: 'grlm_...' });
 
 ## Core Workflow: Upload → Process → Ask
 
-**Processing is async.** After upload, poll `client.sources.list()` until status is `"Completed"` before querying. This is the most important rule.
+Upload returns status `"New"`. If you set `partition_method` during upload, processing starts automatically. Otherwise, you must call parse explicitly — it is **synchronous** and returns when done.
 
 ### Upload Sources
 
@@ -61,18 +61,9 @@ await client.sources.upload({ file: await toFile(Buffer.from('data'), 'file.txt'
 
 File input types accepted: `fs.createReadStream()`, `new File()`, `await fetch()` Response, `await toFile()`.
 
-### Check Processing Status
+### Process (parse)
 
-```typescript
-// Poll until completed
-const sources = await client.sources.list();
-const myDoc = sources.find(s => s.file_id === uploadedFileId);
-if (myDoc?.status === 'Completed') {
-  // Safe to query
-}
-```
-
-### Reprocess with Different Method
+Only required if `partition_method` was not set during upload. The call is **synchronous** — when it returns, the document is `"Processed"` and ready to query.
 
 ```typescript
 await client.sources.parse({
@@ -80,6 +71,8 @@ await client.sources.parse({
   partition_method: 'graphorlm'
 });
 ```
+
+You can also call parse again to reprocess with a different method if results are unsatisfactory.
 
 ### Ask Questions
 
@@ -197,7 +190,7 @@ const source: Graphor.PublicSource = await client.sources.upload(params);
 
 - **Do not use `uploadUrl()` or `uploadGithub()`.** The correct method names are `uploadURL()` (capital URL) and `uploadGitHub()` (capital H). The SDK README may show lowercase variants but the actual methods use these capitalizations.
 - **Do not use `file_names` parameter.** It is deprecated. Always use `file_ids`.
-- **Do not query before processing completes.** Always check status after upload.
+- **Do not query before processing if you did not set `partition_method` during upload.** Call parse first.
 - **Do not use `oneOf`, `anyOf`, `allOf`, or `$ref` in extraction schemas.** They are not supported.
 - **Do not forget `conversation_id` for follow-up questions.** Without it, context is lost.
 

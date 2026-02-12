@@ -9,16 +9,40 @@ metadata:
 
 Use the Graphor MCP tools for extraction. Never make direct API calls.
 
-Extract typed, structured data from documents using JSON Schema definitions.
-
-**Prerequisite**: Documents must have status `"Completed"` before extraction. If status is `"New"`, you must call parse first.
+Extract typed, structured data from documents using JSON Schema definitions. Use this when you need specific data fields (names, dates, amounts, line items) rather than a natural language answer — for that, use [ask-sources](ask-sources.md).
 
 ## Core usage
 
 Three required inputs:
-1. **Documents** — `file_ids` (preferred) or `file_names` to extract from
+1. **Documents** — `file_ids` (preferred) or `file_names` to extract from. Get `file_ids` from upload responses or list-sources.
 2. **Instruction** — `user_instruction` string guiding what to extract ("Extract invoice line items", "Pull out all person names and roles")
 3. **Schema** — `output_schema` defining the expected JSON structure
+
+Example:
+```json
+{
+  "user_instruction": "Extract all people mentioned with their roles",
+  "file_ids": ["abc123"],
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "people": {
+        "type": "array",
+        "description": "List of people mentioned in the document",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string", "description": "Full name" },
+            "role": { "type": ["string", "null"], "description": "Role or title, if mentioned" }
+          },
+          "required": ["name"]
+        }
+      }
+    },
+    "required": ["people"]
+  }
+}
+```
 
 The response includes:
 - `structured_output` — The extracted data, validated against your schema
@@ -29,8 +53,10 @@ The response includes:
 Graphor uses **simplified JSON Schema only**:
 
 - Supports: `object`, `array`, `string`, `number`, `boolean`, `null`
-- Supports: `properties`, `items`, `required`, `type`
+- Supports: `properties`, `items`, `required`, `type`, `description`
 - Supports: nullable types via `["string", "null"]`
+
+**Tip:** Add `description` to your schema fields — it helps the model understand what to extract and produces better results.
 
 **Forbidden schema constructs:**
 - `oneOf`, `anyOf`, `allOf` — not supported
@@ -47,6 +73,5 @@ Same as ask-sources: `fast`, `balanced`, `accurate` (default). Use `accurate` fo
 - **Do not use deeply nested schemas.** Flat or shallow structures produce more reliable results. If you need deep nesting, consider multiple extraction passes.
 - **Do not use `oneOf`, `anyOf`, or `$ref`.** They will cause 400 errors. Flatten your schema instead.
 - **Do not skip `user_instruction`.** The instruction is critical for guiding the model. A schema alone is ambiguous — the instruction tells the model what to look for and how to interpret it.
-- **Do not extract from documents in `"New"` or `"Processing"` status.** Always verify `"Completed"` status first. If `"New"`, call parse first.
 - **Do not use `file_names` for identification.** Use `file_ids` — `file_names` is deprecated.
-- **Use MCP tools for extraction** — not curl. Only local file upload requires curl.
+- **Use MCP tools**.

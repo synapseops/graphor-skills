@@ -18,13 +18,14 @@ Returns all documents with their current status, file names, file IDs, and metad
 - Check processing status after upload
 - Find `file_id` values for previously uploaded documents
 - Verify a document exists before querying
+- Check for existing sources before uploading to avoid unintended overwrites
 
 ## Load elements
 
 Get the parsed content elements (text blocks, tables, images, sections) from a processed document. Useful for inspecting what Graphor extracted.
 
 Parameters:
-- `file_id` (preferred) or `file_name` — identify the document
+- `file_id` (preferred) or `file_name` (deprecated) — identify the document
 - `page` and `page_size` — paginate results
 - `filter` — optional filtering with:
   - `elements_to_remove` — element types to exclude
@@ -33,12 +34,10 @@ Parameters:
 
 ## Delete source
 
-Remove a document. Use `file_id` (preferred) or `file_name`.
-
-The response includes `file_name`, `status`, `message`, `project_id`, `project_name`, and optionally `file_id`.
+Remove a document. Use `file_id` (preferred) or `file_name` (deprecated). Deletion is irreversible.
 
 ## Anti-patterns
 
 - **Do not delete documents without confirmation from the user.** Deletion is irreversible.
 - **Do not assume a file exists.** Check via list first if uncertain.
-- **Use MCP tools for management** — not curl. Only local file upload requires curl.
+- **Use MCP tools**.

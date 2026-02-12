@@ -1,6 +1,6 @@
 # Graphor API Reference
 
-> **This reference is for understanding only.** Use Graphor MCP tools for all operations except local file uploads. The MCP server handles authentication securely. For local file uploads only, use Bash curl with `$GRAPHOR_API_KEY` — see [upload-sources](../rules/upload-sources.md).
+> **This reference is for understanding only.** Use Graphor MCP tools for all operations. The MCP server handles authentication securely.
 
 ## Base URL
 
@@ -22,7 +22,7 @@ All endpoint paths below are relative to this base. Authentication is handled au
   - `file` (binary, required) — the file to upload
   - `partition_method` (string, optional) — `basic`, `hi_res`, `hi_res_ft`, `mai`, `graphorlm`
 - **Response**: `PublicSource` — `{ file_name, file_id, file_size, file_source, file_type, message, project_id, project_name, status, partition_method? }`
-- **Initial status**: `"New"` — source accepted but NOT processed. Must call parse next.
+- **Initial status**: `"New"` — source accepted. If `partition_method` was not set, you must call parse next.
 
 ### Upload from URL
 
@@ -66,7 +66,7 @@ All endpoint paths below are relative to this base. Authentication is handled au
 
 - **GET** `/sources`
 - **Response**: Array of `PublicSource` objects
-- **Status values**: `"New"` (uploaded, not processed), `"Processing"`, `"Completed"`, `"Failed"`
+- **Status values**: `"New"`, `"Waiting"`, `"Uploading"`, `"Not parsed"`, `"Processing"`, `"Processed"`, `"Completed"`, `"Failed"`, `"Processing failed"`, `"Upload failed"`, `"Service unavailable"`
 
 ### Delete Source
 

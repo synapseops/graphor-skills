@@ -11,7 +11,7 @@ This plugin provides **MCP server connectivity** and **domain expertise skills**
 /plugin install graphor@graphor-skills
 ```
 
-Set your API key when prompted (get one from the [Graphor dashboard](https://graphorlm.com)):
+Set your API key when prompted (get one from the [Graphor dashboard](https://app.graphorlm.com)):
 
 ```bash
 export GRAPHOR_API_KEY="grlm_your_api_key_here"
@@ -20,7 +20,7 @@ export GRAPHOR_API_KEY="grlm_your_api_key_here"
 Then just ask:
 
 ```
-"Upload https://example.com/docs to Graphor and summarize it"
+"Upload example.pdf to Graphor and summarize it"
 ```
 
 ## What's Included
@@ -35,7 +35,7 @@ Then just ask:
 ### Skill Details
 
 **`graphor-workflow`** (auto-activates when relevant)
-The primary skill. Teaches the agent to upload documents (files, URLs, GitHub repos, YouTube videos), handle async processing, and query documents via ask, extraction, and chunk retrieval. Paired with the MCP server for direct API access.
+The primary skill. Teaches the agent to upload documents (files, URLs, GitHub repos, YouTube videos), handle parsing, and query documents via ask, extraction, and chunk retrieval. Paired with the MCP server for direct API access.
 
 **`graphor-ts-sdk`** (background knowledge)
 Activates when writing TypeScript/JavaScript code with the `graphor` npm package. Covers client setup, all SDK methods, file upload patterns, error handling, and type safety.

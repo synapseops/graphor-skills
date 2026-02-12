@@ -3,7 +3,7 @@ name: graphor-py-sdk
 description: >
   Graphor Python SDK patterns and best practices. Use when writing Python code
   that integrates with Graphor, importing the graphor package, or building Python
-  applications with document intelligence features including async workflows.
+  applications with document intelligence features including async client support.
 user-invocable: false
 ---
 
@@ -25,7 +25,7 @@ client = Graphor(api_key="grlm_...")
 
 ## Core Workflow: Upload → Process → Ask
 
-**Processing is async.** After upload, poll `client.sources.list()` until status is `"Completed"` before querying. This is the most important rule.
+Upload returns status `"New"`. If you set `partition_method` during upload, processing starts automatically. Otherwise, you must call parse explicitly — it is **synchronous** and returns when done.
 
 ### Upload Sources
 
@@ -50,18 +50,9 @@ client.sources.upload_github(url="https://github.com/org/repo")
 client.sources.upload_youtube(url="https://youtube.com/watch?v=...")
 ```
 
-### Check Processing Status
+### Process (parse)
 
-```python
-# Poll until completed
-sources = client.sources.list()
-my_doc = next((s for s in sources if s.file_id == uploaded_file_id), None)
-if my_doc and my_doc.status == "Completed":
-    # Safe to query
-    pass
-```
-
-### Reprocess with Different Method
+Only required if `partition_method` was not set during upload. The call is **synchronous** — when it returns, the document is `"Processed"` and ready to query.
 
 ```python
 client.sources.parse(
@@ -69,6 +60,8 @@ client.sources.parse(
     partition_method="graphorlm"
 )
 ```
+
+You can also call parse again to reprocess with a different method if results are unsatisfactory.
 
 ### Ask Questions
 
@@ -208,7 +201,7 @@ client.with_options(max_retries=3, timeout=300.0).sources.parse(
 
 - **Do not catch errors as `Graphor.BadRequestError`.** The Python SDK does not attach error classes to the client. Use `graphor.BadRequestError` or import directly from `graphor`.
 - **Do not use `file_names` parameter.** It is deprecated. Always use `file_ids`.
-- **Do not query before processing completes.** Always check status after upload.
+- **Do not query before processing if you did not set `partition_method` during upload.** Call parse first.
 - **Do not use `oneOf`, `anyOf`, `allOf`, or `$ref` in extraction schemas.** They are not supported.
 - **Do not forget `conversation_id` for follow-up questions.** Without it, context is lost.
 

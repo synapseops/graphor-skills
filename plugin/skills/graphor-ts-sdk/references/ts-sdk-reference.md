@@ -40,21 +40,21 @@ new Graphor(options?)
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.parse({ file_id?, file_name?, partition_method? })` | At least one of `file_id`/`file_name` required | `PublicSource` |
+| `sources.parse({ file_id?, file_name?, partition_method? })` | At least one of `file_id`/`file_name` required. Prefer `file_id` (`file_name` is deprecated) | `PublicSource` |
 
 ### Sources — Manage
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
 | `sources.list()` | none | `PublicSource[]` |
-| `sources.delete({ file_id?, file_name? })` | At least one required. Prefer `file_id` | `{ file_name, file_id?, message, project_id, project_name, status }` |
-| `sources.loadElements({ file_id?, file_name?, page?, page_size?, filter? })` | `filter?`: `{ elementsToRemove?, page_numbers?, type? }` | `{ items, total, page, page_size, total_pages }` |
+| `sources.delete({ file_id?, file_name? })` | At least one required. Prefer `file_id` (`file_name` is deprecated) | `{ file_name, file_id?, message, project_id, project_name, status }` |
+| `sources.loadElements({ file_id?, file_name?, page?, page_size?, filter? })` | Prefer `file_id` (`file_name` is deprecated). `filter?`: `{ elementsToRemove?, page_numbers?, type? }` | `{ items, total, page, page_size, total_pages }` |
 
 ### Chat
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.ask({ question, conversation_id?, reset?, file_ids?, file_names?, output_schema?, thinking_level? })` | See below | `{ answer, conversation_id, structured_output?, raw_json? }` |
+| `sources.ask({ question, conversation_id?, reset?, file_ids?, file_names?, output_schema?, thinking_level? })` | Prefer `file_ids` (`file_names` is deprecated) | `{ answer, conversation_id, structured_output?, raw_json? }` |
 
 **`thinking_level`**: `'fast'` | `'balanced'` | `'accurate'` (default)
 
@@ -62,13 +62,13 @@ new Graphor(options?)
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.extract({ file_ids?, file_names?, user_instruction, output_schema, thinking_level? })` | At least one of `file_ids`/`file_names` required | `{ file_ids, file_names, structured_output, raw_json }` |
+| `sources.extract({ file_ids?, file_names?, user_instruction, output_schema, thinking_level? })` | At least one of `file_ids`/`file_names` required. Prefer `file_ids` (`file_names` is deprecated) | `{ file_ids, file_names, structured_output, raw_json }` |
 
 ### RAG
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.retrieveChunks({ query, file_ids?, file_names? })` | `query`: string | `{ query, chunks, total }` |
+| `sources.retrieveChunks({ query, file_ids?, file_names? })` | `query`: string. Prefer `file_ids` (`file_names` is deprecated) | `{ query, chunks, total }` |
 
 Each chunk: `{ text, file_name?, file_id?, page_number?, score?, metadata? }`
 
@@ -76,7 +76,7 @@ Each chunk: `{ text, file_name?, file_id?, page_number?, score?, metadata? }`
 
 | Type | Description |
 |------|-------------|
-| `Graphor.PublicSource` | `{ file_name, file_id?, file_size, file_source, file_type, message, project_id, project_name, status, partition_method? }` |
+| `Graphor.PublicSource` | `{ file_name, file_id?, file_size, file_source, file_type, message, project_id, project_name, status, partition_method? }`. `status` values: `"New"`, `"Waiting"`, `"Uploading"`, `"Not parsed"`, `"Processing"`, `"Processed"`, `"Completed"`, `"Failed"`, `"Processing failed"`, `"Upload failed"`, `"Service unavailable"` |
 | `Graphor.SourceAskResponse` | `{ answer, conversation_id, structured_output?, raw_json? }` |
 | `Graphor.SourceExtractResponse` | `{ file_ids, file_names, structured_output, raw_json }` |
 | `Graphor.SourceRetrieveChunksResponse` | `{ query, total, chunks }` |

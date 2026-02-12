@@ -1,7 +1,10 @@
 {
   "graphor": {
     "command": "npx",
-    "args": ["-y", "graphor-mcp"],
+    "args": [
+      "-y",
+      "graphor-mcp@latest"
+    ],
     "env": {
       "GRAPHOR_API_KEY": "${GRAPHOR_API_KEY}"
     }
