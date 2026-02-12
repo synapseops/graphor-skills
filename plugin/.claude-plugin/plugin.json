@@ -1,7 +1,7 @@
 {
   "name": "graphor",
   "description": "Graphor document intelligence - upload, process, and query documents via MCP, plus TypeScript and Python SDK coding assistance.",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "author": {
     "name": "SynapseOps",
     "url": "https://graphorlm.com"

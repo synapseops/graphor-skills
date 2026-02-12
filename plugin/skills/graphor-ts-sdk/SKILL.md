@@ -1,11 +1,6 @@
 ---
 name: graphor-ts-sdk
-description: >
-  Graphor TypeScript/JavaScript SDK patterns and best practices. Use when writing
-  TypeScript or JavaScript code that integrates with Graphor, importing from the
-  graphor npm package, or building Node.js/Deno/Bun applications with document
-  intelligence features.
-user-invocable: false
+description: Graphor TypeScript/JavaScript SDK patterns and best practices. Use when writing TypeScript or JavaScript code that integrates with Graphor, importing from the graphor npm package, or building Node.js/Deno/Bun applications with document intelligence features.
 ---
 
 You are assisting with TypeScript/JavaScript code that uses the Graphor SDK (`graphor` npm package). Follow these patterns and rules.

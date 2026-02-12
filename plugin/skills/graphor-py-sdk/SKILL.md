@@ -1,10 +1,6 @@
 ---
 name: graphor-py-sdk
-description: >
-  Graphor Python SDK patterns and best practices. Use when writing Python code
-  that integrates with Graphor, importing the graphor package, or building Python
-  applications with document intelligence features including async client support.
-user-invocable: false
+description: Graphor Python SDK patterns and best practices. Use when writing Python code that integrates with Graphor, importing the graphor package, or building Python applications with document intelligence features including async client support.
 ---
 
 You are assisting with Python code that uses the Graphor SDK (`graphor` PyPI package). Follow these patterns and rules.

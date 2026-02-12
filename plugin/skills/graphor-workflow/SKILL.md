@@ -1,10 +1,6 @@
 ---
 name: graphor-workflow
-description: >
-  Graphor document intelligence workflow. Use when uploading documents, ingesting
-  files/URLs/GitHub repos/YouTube videos, processing documents, asking questions
-  about documents, extracting structured data from documents, retrieving chunks
-  for RAG, or managing document sources in Graphor.
+description: Graphor document intelligence workflow. Use when uploading documents, ingesting files/URLs/GitHub repos/YouTube videos, processing documents, asking questions about documents, extracting structured data from documents, retrieving chunks for RAG, or managing document sources in Graphor.
 ---
 
 You have access to the Graphor MCP server for interacting with the Graphor API.
