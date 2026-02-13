@@ -1,7 +1,7 @@
 {
   "name": "graphor",
   "description": "Graphor document intelligence - upload, process, and query documents via MCP, plus TypeScript and Python SDK coding assistance.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "SynapseOps",
     "url": "https://graphorlm.com"
@@ -9,5 +9,11 @@
   "homepage": "https://docs.graphorlm.com",
   "repository": "https://github.com/synapseops/graphor-skills",
   "license": "MIT",
-  "keywords": ["graphor", "documents", "rag", "extraction", "mcp"]
+  "keywords": [
+    "graphor",
+    "documents",
+    "rag",
+    "extraction",
+    "mcp"
+  ]
 }
