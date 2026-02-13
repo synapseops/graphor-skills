@@ -27,12 +27,12 @@ Load the relevant rule for the task at hand:
 
 | Task | Rule |
 |------|------|
-| Upload files, URLs, GitHub repos, or YouTube videos | [upload-sources](rules/upload-sources.md) |
-| Process documents and check status | [parsing](rules/parsing.md) |
-| Ask questions about documents (conversational Q&A) | [ask-sources](rules/ask-sources.md) |
-| Extract structured data using JSON Schema | [extraction](rules/extraction.md) |
-| Retrieve chunks for custom RAG pipelines | [retrieve-chunks](rules/retrieve-chunks.md) |
-| List, inspect, or delete documents | [manage-sources](rules/manage-sources.md) |
+| Upload files, URLs, GitHub repos, or YouTube videos | [upload-sources](references/upload-sources.md) |
+| Process documents and check status | [parsing](references/parsing.md) |
+| Ask questions about documents (conversational Q&A) | [ask-sources](references/ask-sources.md) |
+| Extract structured data using JSON Schema | [extraction](references/extraction.md) |
+| Retrieve chunks for custom RAG pipelines | [retrieve-chunks](references/retrieve-chunks.md) |
+| List, inspect, or delete documents | [manage-sources](references/manage-sources.md) |
 
 ## Universal rules
 
