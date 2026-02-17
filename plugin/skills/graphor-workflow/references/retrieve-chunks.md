@@ -41,6 +41,7 @@ Typical pattern:
 
 ## Anti-patterns
 
+- **Do not retrieve chunks from documents that haven't been processed.** If you uploaded without `partition_method`, you must call parse first. If you uploaded with `partition_method`, the document is already processed — proceed to retrieve. See [upload-sources](upload-sources.md).
 - **Do not use retrieve-chunks when ask-sources would suffice.** If you just want an answer, use ask-sources — it handles RAG internally with better quality.
 - **Do not ignore scores.** Low-scoring chunks may be noise. Consider filtering by a score threshold.
-- **Use MCP tools**.
+- **Use MCP tools.**

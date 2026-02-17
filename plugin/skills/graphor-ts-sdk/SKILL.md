@@ -21,7 +21,12 @@ const client = new Graphor({ apiKey: 'grlm_...' });
 
 ## Core Workflow: Upload → Process → Ask
 
-Upload returns status `"New"`. If you set `partition_method` during upload, processing starts automatically. Otherwise, you must call parse explicitly — it is **synchronous** and returns when done.
+Upload returns status `"New"`. Two paths:
+
+- **`partition_method` set during upload**: Processing happens automatically. **Skip parse. Go directly to ask/extract/retrieve.** Do not call parse — it would be redundant.
+- **`partition_method` not set**: You must call parse explicitly — it is **synchronous** and returns when done.
+
+> **Note**: The `status` field in the upload response always shows `"New"` regardless of whether processing happened. Do not use status to decide next steps.
 
 ### Upload Sources
 
@@ -186,6 +191,8 @@ const source: Graphor.PublicSource = await client.sources.upload(params);
 - **Do not use `uploadUrl()` or `uploadGithub()`.** The correct method names are `uploadURL()` (capital URL) and `uploadGitHub()` (capital H). The SDK README may show lowercase variants but the actual methods use these capitalizations.
 - **Do not use `file_names` parameter.** It is deprecated. Always use `file_ids`.
 - **Do not query before processing if you did not set `partition_method` during upload.** Call parse first.
+- **Do not call parse after upload if you DID set `partition_method`.** Processing already completed during upload. Calling parse is redundant. Proceed directly to query.
+- **Do not rely on the `status` field to decide whether to parse.** It may show `"New"` even after processing completed. If `partition_method` was set during upload, skip parse.
 - **Do not use `oneOf`, `anyOf`, `allOf`, or `$ref` in extraction schemas.** They are not supported.
 - **Do not forget `conversation_id` for follow-up questions.** Without it, context is lost.
 

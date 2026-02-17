@@ -53,6 +53,7 @@ You can pass an `output_schema` (JSON Schema) to get structured data alongside t
 
 ## Anti-patterns
 
-- **Use MCP tools**.
+- **Do not query documents that haven't been processed.** If you uploaded without `partition_method`, you must call parse first. If you uploaded with `partition_method`, the document is already processed — proceed to query. See [upload-sources](upload-sources.md).
 - **Do not forget to pass `conversation_id` for follow-ups.** Without it, each question starts from scratch with no context.
 - **Do not query all documents when only specific ones are relevant.** Scope with `file_ids` for better results.
+- **Use MCP tools.**

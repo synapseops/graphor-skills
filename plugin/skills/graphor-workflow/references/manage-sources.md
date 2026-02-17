@@ -13,12 +13,13 @@ Operations for listing, inspecting, and deleting documents.
 
 ## List sources
 
-Returns all documents with their current status, file names, file IDs, and metadata. Use this to:
+Returns all documents with their status, file names, file IDs, and metadata. Use this to:
 
-- Check processing status after upload
 - Find `file_id` values for previously uploaded documents
 - Verify a document exists before querying
 - Check for existing sources before uploading to avoid unintended overwrites
+
+**Status field caveat**: The `status` field may not immediately reflect processing state. If you uploaded with `partition_method` set, the document is processed and queryable even if list_sources still shows `"New"`. Do not use the status from list_sources to decide whether to call parse — follow the upload workflow instead: if `partition_method` was set during upload, skip parse; if not, call parse.
 
 ## Load elements
 
@@ -38,6 +39,7 @@ Remove a document. Use `file_id` (preferred) or `file_name` (deprecated). Deleti
 
 ## Anti-patterns
 
+- **Do not use list_sources status to decide whether to call parse.** If you set `partition_method` during upload, the document is already processed regardless of the status shown. The status field may lag behind.
 - **Do not delete documents without confirmation from the user.** Deletion is irreversible.
 - **Do not assume a file exists.** Check via list first if uncertain.
-- **Use MCP tools**.
+- **Use MCP tools.**

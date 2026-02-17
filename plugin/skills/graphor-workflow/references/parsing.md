@@ -7,7 +7,9 @@ metadata:
 
 # Processing Documents
 
-**This step is only required if you did not set a `partition_method` during upload.** If you set `partition_method` at upload time, processing starts automatically — you do not need to call parse.
+Use the Graphor MCP tools for processing. Never make direct API calls.
+
+**This step is only required if you did not set a `partition_method` during upload.** If you set `partition_method` at upload time, processing already happened — skip this step entirely and go directly to query (ask, extract, or retrieve chunks).
 
 ## The workflow
 
@@ -51,6 +53,8 @@ Use `file_id` to identify the document. `file_name` is deprecated as an identifi
 ## Anti-patterns
 
 - **Do not skip the parse step if you did not set `partition_method` during upload.** Status will stay `"New"` forever otherwise.
+- **Do not call parse if you DID set `partition_method` during upload.** Processing already completed at upload time. Calling parse again is redundant and wastes time. Go directly to query.
 - **Do not treat `"New"` as an error or loop on it.** It is the expected status after upload without `partition_method`. Call parse to advance.
+- **Do not rely on the `status` field from list_sources to decide whether to parse.** If you set `partition_method` during upload, the document is processed regardless of what status shows. The status field may lag behind actual state.
 - **Do not reprocess without reason.** Only reprocess if results are unsatisfactory.
-- **Use MCP tools**
+- **Use MCP tools.**

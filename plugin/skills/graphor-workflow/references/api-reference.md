@@ -22,7 +22,7 @@ All endpoint paths below are relative to this base. Authentication is handled au
   - `file` (binary, required) — the file to upload
   - `partition_method` (string, optional) — `basic`, `hi_res`, `hi_res_ft`, `mai`, `graphorlm`
 - **Response**: `PublicSource` — `{ file_name, file_id, file_size, file_source, file_type, message, project_id, project_name, status, partition_method? }`
-- **Initial status**: `"New"` — source accepted. If `partition_method` was not set, you must call parse next.
+- **Initial status**: `"New"` — source accepted. If `partition_method` was set, processing is complete — proceed to query. If `partition_method` was not set, you must call parse next.
 
 ### Upload from URL
 
@@ -67,6 +67,7 @@ All endpoint paths below are relative to this base. Authentication is handled au
 - **GET** `/sources`
 - **Response**: Array of `PublicSource` objects
 - **Status values**: `"New"`, `"Waiting"`, `"Uploading"`, `"Not parsed"`, `"Processing"`, `"Processed"`, `"Completed"`, `"Failed"`, `"Processing failed"`, `"Upload failed"`, `"Service unavailable"`
+- **Note**: The `status` field may lag behind actual processing state. A source uploaded with `partition_method` may still show `"New"` even though processing completed. Do not use this status to decide whether to call parse.
 
 ### Delete Source
 

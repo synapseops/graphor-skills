@@ -70,8 +70,9 @@ Same as ask-sources: `fast`, `balanced`, `accurate` (default). Use `accurate` fo
 
 ## Anti-patterns
 
+- **Do not extract from documents that haven't been processed.** If you uploaded without `partition_method`, you must call parse first. If you uploaded with `partition_method`, the document is already processed — proceed to extract. See [upload-sources](upload-sources.md).
 - **Do not use deeply nested schemas.** Flat or shallow structures produce more reliable results. If you need deep nesting, consider multiple extraction passes.
 - **Do not use `oneOf`, `anyOf`, or `$ref`.** They will cause 400 errors. Flatten your schema instead.
 - **Do not skip `user_instruction`.** The instruction is critical for guiding the model. A schema alone is ambiguous — the instruction tells the model what to look for and how to interpret it.
 - **Do not use `file_names` for identification.** Use `file_ids` — `file_names` is deprecated.
-- **Use MCP tools**.
+- **Use MCP tools.**
