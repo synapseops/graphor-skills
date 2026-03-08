@@ -32,7 +32,7 @@ This is valuable for multi-turn research — "What are the main findings?" follo
 
 Restrict the query to specific documents:
 
-- Use `file_ids` (preferred) — array of file IDs from upload responses or list-sources
+- Use `file_ids` (preferred) — array of file IDs from **get_build_status** (when success is true) or **list_sources**
 - Use `file_names` (deprecated) — array of file names
 
 When the user's intent is clearly about specific documents, always scope the query. This reduces noise from unrelated documents and improves answer quality.

@@ -1,45 +1,50 @@
 ---
 name: manage-sources
-description: List, inspect, and delete document sources.
+description: List, inspect elements, and delete document sources.
 metadata:
-  tags: list, delete, elements, sources, manage
+  tags: list, delete, elements, sources, manage, get_elements
 ---
 
 # Manage Sources
 
 Use the Graphor MCP tools for all operations. Never make direct API calls.
 
-Operations for listing, inspecting, and deleting documents.
+Operations for listing, inspecting, and deleting documents. All identify sources by **file_id** (from get_build_status or list_sources).
 
 ## List sources
 
-Returns all documents with their status, file names, file IDs, and metadata. Use this to:
+Use the **list_sources** MCP tool. Returns all documents with **file_id**, **file_name**, **status**, and metadata.
 
-- Find `file_id` values for previously uploaded documents
-- Verify a document exists before querying
-- Check for existing sources before uploading to avoid unintended overwrites
+Optional: pass **file_ids** (array) to filter and return only those sources.
 
-**Status field caveat**: The `status` field may not immediately reflect processing state. If you uploaded with `partition_method` set, the document is processed and queryable even if list_sources still shows `"New"`. Do not use the status from list_sources to decide whether to call parse — follow the upload workflow instead: if `partition_method` was set during upload, skip parse; if not, call parse.
+Use list_sources to:
+- Find **file_id** values for previously ingested documents (e.g. when you didn’t store them)
+- Check current status of sources
+- Verify a document exists before querying or deleting
+- See what’s in the project before ingesting to avoid duplicates
 
-## Load elements
+## Get elements
 
-Get the parsed content elements (text blocks, tables, images, sections) from a processed document. Useful for inspecting what Graphor extracted.
+Use the **get_elements** MCP tool to retrieve the parsed content elements (text blocks, tables, images, sections) of a processed source.
 
-Parameters:
-- `file_id` (preferred) or `file_name` (deprecated) — identify the document
-- `page` and `page_size` — paginate results
-- `filter` — optional filtering with:
-  - `elements_to_remove` — element types to exclude
-  - `page_numbers` — only elements from specific pages
-  - `type` — only elements of a specific type
+**Required:** **file_id** — from list_sources or get_build_status.
+
+**Optional (flat parameters; no nested filter object):**
+- **page**, **page_size** — pagination
+- **suppress_img_base64** — omit base64 images to reduce payload size
+- **type** — filter by element type (e.g. Title, Table, NarrativeText)
+- **page_numbers** — restrict to specific pages (array of numbers)
+- **elementsToRemove** — element types to exclude (array of strings)
+
+Use get_elements to inspect how a document was segmented or to work with raw chunks.
 
 ## Delete source
 
-Remove a document. Use `file_id` (preferred) or `file_name` (deprecated). Deletion is irreversible.
+Use the **delete_source** MCP tool. Pass **file_id** (required). Deletion is irreversible.
 
 ## Anti-patterns
 
-- **Do not use list_sources status to decide whether to call parse.** If you set `partition_method` during upload, the document is already processed regardless of the status shown. The status field may lag behind.
-- **Do not delete documents without confirmation from the user.** Deletion is irreversible.
-- **Do not assume a file exists.** Check via list first if uncertain.
-- **Use MCP tools.**
+- **Do not delete without user confirmation.** Deletion is irreversible.
+- **Do not assume a source exists.** Check via list_sources first if unsure.
+- **Do not use a nested filter for get_elements.** Use the flat parameters: type, page_numbers, elementsToRemove.
+- **Use MCP tools** for list_sources, get_elements, delete_source.

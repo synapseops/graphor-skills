@@ -20,13 +20,13 @@ Get raw, scored text passages from documents for use in custom RAG pipelines. Un
 
 ## Core usage
 
-Send a `query` string. Optionally scope with `file_ids` (preferred) or `file_names` (deprecated). Get `file_ids` from upload responses or list-sources.
+Send a `query` string. Optionally scope with `file_ids` (preferred) or `file_names` (deprecated). Get `file_ids` from **get_build_status** (when success is true) or **list_sources**.
 
 The response includes:
 - `chunks` — array of matches, each with:
   - `text` — the chunk content
-  - `file_name` — source document name
-  - `file_id` — source document ID
+  - `file_id` — source document ID (use for citations)
+  - `file_name` — source document name (optional)
   - `page_number` — page in source document
   - `score` — relevance score (higher = more relevant)
   - `metadata` — additional chunk metadata

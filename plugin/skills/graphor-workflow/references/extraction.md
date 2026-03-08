@@ -14,7 +14,7 @@ Extract typed, structured data from documents using JSON Schema definitions. Use
 ## Core usage
 
 Three required inputs:
-1. **Documents** — `file_ids` (preferred) or `file_names` to extract from. Get `file_ids` from upload responses or list-sources.
+1. **Documents** — `file_ids` (preferred) or `file_names` to extract from. Get `file_ids` from **get_build_status** (when success is true) or **list_sources**.
 2. **Instruction** — `user_instruction` string guiding what to extract ("Extract invoice line items", "Pull out all person names and roles")
 3. **Schema** — `output_schema` defining the expected JSON structure
 

@@ -1,55 +1,62 @@
 ---
 name: upload-sources
-description: Upload files, URLs, GitHub repos, and YouTube videos to Graphor.
+description: Ingest files, URLs, GitHub repos, and YouTube videos to Graphor.
 metadata:
   tags: upload, ingest, sources, files, url, github, youtube
 ---
 
-# Upload Sources
+# Ingest Sources
 
-Graphor supports four source types. After upload, always store the returned `file_id` for subsequent operations. Prefer `file_id` over `file_name` — `file_name` is deprecated as an identifier.
+Graphor supports four source types. **Ingestion is asynchronous**: each ingest returns a **build_id** immediately. You must **poll get_build_status(build_id)** until **success** is true to obtain **file_id**, then use **file_id** for all subsequent operations (ask, extract, retrieve_chunks, get_elements, delete_source, reprocess).
 
-## File upload
+## File ingest
 
-Supports: PDF, DOCX, DOC, TXT, MD, HTML, CSV, XLSX, XLS, PNG, JPG, JPEG, GIF, BMP, TIFF, MP3, MP4, WAV, WEBM.
+Use the **ingest_file** MCP tool. Supports: PDF, DOCX, DOC, TXT, MD, HTML, CSV, XLSX, XLS, PNG, JPG, TIFF, MP4, and more.
 
-You can optionally set the parsing method at upload time with `partition_method` (ordered from lowest to highest accuracy):
-- `basic` — Fast - Text-only extraction (least accurate)
-- `hi_res` — Balanced - High-resolution OCR for scanned documents
-- `hi_res_ft` — Accurate - Hi-res with fine-tuned models
-- `mai` — VLM - Multi-modal AI parsing
-- `graphorlm` — Agentic - Graphor's proprietary pipeline (most accurate, slowest)
+You can optionally set the partition method with **method** (ordered from fastest to most accurate):
 
-If you omit `partition_method`, no processing happens at upload time — you must call parse separately afterward (Graphor will choose a default method at parse time based on file type).
+- `fast` — Fastest, rule-based partitioning
+- `balanced` — Balanced speed and accuracy (layout-aware)
+- `accurate` — High-accuracy parsing
+- `vlm` — Vision-language model for complex visual documents
+- `agentic` — Agentic pipeline (highest accuracy, slowest)
 
-If you set `partition_method` during upload, processing starts automatically — you do **not** need to call parse separately. Proceed directly to query (ask, extract, or retrieve chunks).
+If omitted, the system default is used.
 
-## URL upload
+**Two modes for ingest_file:**
+- **file_path** — absolute path to a file (local MCP)
+- **file_content** + **file_name** — text content and filename (works in remote MCP for text files)
 
-Upload from any web URL via MCP tools. Supports `crawl_urls` option — when `true`, follows and ingests linked pages. Useful for documentation sites. The page content (HTML) is extracted and parsed.
+## URL ingest
 
-## GitHub upload
+Use the **ingest_url** MCP tool. Pass **url** (required). Optionally **crawlUrls** (follow linked pages) and **method**. Returns **build_id** — poll get_build_status until success.
 
-Upload an entire GitHub repository by URL via MCP tools. Text-based files (code, markdown, configs) are extracted and ingested.
+## GitHub ingest
 
-## YouTube upload
+Use the **ingest_github** MCP tool. Pass **url** (GitHub repo URL). Returns **build_id** — poll get_build_status until success.
 
-Upload a YouTube video by URL via MCP tools. The transcript/captions are extracted.
+## YouTube ingest
 
-## After upload: Two paths
+Use the **ingest_youtube** MCP tool. Pass **url** (YouTube video URL). Transcript/captions are extracted. Returns **build_id** — poll get_build_status until success.
 
-The upload response includes `file_id`, `file_name`, `status`, and `message`. The `status` field will be `"New"` regardless of whether `partition_method` was set. **Do not rely on the `status` field to determine if processing happened** — it may lag behind actual processing state.
+## After ingest: poll get_build_status
 
-**`"New"` is the expected status. It is not an error.**
+The ingest response contains **build_id** only. It does **not** contain file_id yet.
 
-- **If you set `partition_method` during upload**: Processing already happened. **Skip parse. Go directly to query** (ask, extract, or retrieve chunks). The `message` field will confirm: `"Source uploaded and processed successfully"`.
-- **If you did NOT set `partition_method` during upload**: The document is not processed yet. You must explicitly call parse next. See [parsing](parsing.md).
+1. Call **get_build_status(build_id)** (e.g. every 2–5 seconds).
+2. **status** may be:
+   - **Pending** — request received, build not started; keep polling
+   - **Processing** — build running; keep polling
+   - **Completed** — build finished; response includes **file_id** and **success: true**
+   - **Processing failed** — build failed; check **error**
+   - **not_found** — no history yet; keep polling
+3. When **success** is true, use **file_id** for ask, extract, retrieve_chunks, get_elements, delete_source, reprocess.
+
+**Do not use file_id before success is true.** There is no synchronous "upload then get file_id" — you must poll.
 
 ## Anti-patterns
 
-- **Do not query immediately after upload if you did not set a `partition_method`.** Call parse first — the document must reach status `"Processed"` before it can be queried. An unprocessed `"New"` document cannot be queried.
-- **Do not call parse after upload if you DID set `partition_method`.** Processing already happened during upload. Calling parse again is unnecessary and wastes time.
-- **Do not assume upload starts processing if you did not set a `partition_method`.** You must explicitly trigger processing via parse.
-- **Do not rely on the `status` field to determine if processing completed.** The API may return `"New"` even when processing finished. If you set `partition_method` during upload, trust that processing is done and proceed to query.
-- **Do not discard `file_id` from the upload response.** It is the primary identifier. `file_name` is deprecated.
-- **Uploading a file with the same name as an existing source will overwrite it.** Check existing sources via list before uploading to avoid unintended overwrites.
+- **Do not assume ingest returns file_id.** It returns build_id only. Always poll get_build_status until success.
+- **Do not query (ask/extract/retrieve_chunks) before you have file_id.** Get file_id from get_build_status first.
+- **Do not discard build_id.** You need it to poll. Store file_id only after get_build_status returns success.
+- **Do not treat Pending or Processing as errors.** Keep polling until Completed or Processing failed.

@@ -19,69 +19,83 @@ new Graphor(options?)
 | `apiKey` | `string` | `process.env.GRAPHOR_API_KEY` | API key (`grlm_...`) |
 | `maxRetries` | `number` | `2` | Max retry attempts with exponential backoff |
 | `timeout` | `number` | `60000` | Request timeout in milliseconds |
-| `baseURL` | `string` | `https://api.graphorlm.com/api/public/v1` | API base URL override |
+| `baseURL` | `string` | (API base URL) | API base URL override |
 
 ## Methods
 
-### Sources — Upload
+### Sources — Ingest (async; return build_id)
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.upload({ file, partition_method? })` | `file`: Uploadable, `partition_method?`: PartitionMethod | `PublicSource` |
-| `sources.uploadURL({ url, crawl_urls?, partition_method? })` | `url`: string, `crawl_urls?`: boolean | `PublicSource` |
-| `sources.uploadGitHub({ url })` | `url`: string (GitHub repo URL) | `PublicSource` |
-| `sources.uploadYoutube({ url })` | `url`: string (YouTube video URL) | `PublicSource` |
+| `sources.ingestFile({ file, method? })` | `file`: Uploadable, `method?`: string | `Promise<{ build_id }>` |
+| `sources.ingestURL({ url, crawlUrls?, method? })` | `url`: string, `crawlUrls?`: boolean, `method?`: string | `Promise<{ build_id }>` |
+| `sources.ingestGitHub({ url })` | `url`: string (GitHub repo URL) | `Promise<{ build_id }>` |
+| `sources.ingestYoutube({ url })` | `url`: string (YouTube video URL) | `Promise<{ build_id }>` |
 
-**Important**: Method names are `uploadURL` (capital URL) and `uploadGitHub` (capital H).
+**Method names**: `ingestURL` (capital URL), `ingestGitHub` (capital H), `ingestYoutube`.
 
-**PartitionMethod**: `'basic'` | `'hi_res'` | `'hi_res_ft'` | `'mai'` | `'graphorlm'`
+**method** (partition strategy): `'fast'` | `'balanced'` | `'accurate'` | `'vlm'` | `'agentic'`
 
-### Sources — Process
+### Sources — Build Status
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.parse({ file_id?, file_name?, partition_method? })` | At least one of `file_id`/`file_name` required. Prefer `file_id` (`file_name` is deprecated) | `PublicSource` |
+| `sources.getBuildStatus(buildId, { suppress_elements?, suppress_img_base64?, page?, page_size? }?)` | `buildId`: string (required); optional options object | `Promise<BuildStatus>` |
+
+**BuildStatus**: `build_id`, `status`, `success`, `file_id`, `file_name`, `error`, `method`, `total_partitions`, `total_pages`, `created_at`, `updated_at`, `message`, `elements`, `total_elements`, `page`, `page_size`, `total_pages_elements`.
+
+**status**: `'Pending'` (request received, build not started), `'Processing'`, `'Completed'`, `'Processing failed'`, `'not_found'`. Use `success` to detect completion; use `file_id` when `success` is `true`.
+
+### Sources — Reprocess (async; return build_id)
+
+| Method | Parameters | Returns |
+|--------|-----------|---------|
+| `sources.reprocess({ file_id, method? })` | `file_id`: string (required), `method?`: string | `Promise<{ build_id }>` |
 
 ### Sources — Manage
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.list()` | none | `PublicSource[]` |
-| `sources.delete({ file_id?, file_name? })` | At least one required. Prefer `file_id` (`file_name` is deprecated) | `{ file_name, file_id?, message, project_id, project_name, status }` |
-| `sources.loadElements({ file_id?, file_name?, page?, page_size?, filter? })` | Prefer `file_id` (`file_name` is deprecated). `filter?`: `{ elementsToRemove?, page_numbers?, type? }` | `{ items, total, page, page_size, total_pages }` |
+| `sources.list({ file_ids? }?)` | `file_ids?`: string[] — optional filter | `Promise<Source[]>` |
+| `sources.delete({ file_id })` | `file_id`: string (required) | `Promise<SourceDeleteResponse>` |
+| `sources.getElements({ file_id, page?, page_size?, suppress_img_base64?, type?, page_numbers?, elementsToRemove? })` | `file_id`: string (required); optional pagination and filter params | `Promise<SourceGetElementsResponse>` |
+
+Filter for getElements is via flat params (no nested `filter`): `type`, `page_numbers`, `elementsToRemove`. Parameter names: **snake_case** for `file_id`, `page_size`, `suppress_img_base64`, `page_numbers`; **camelCase** for `elementsToRemove` (check SDK for exact casing).
 
 ### Chat
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.ask({ question, conversation_id?, reset?, file_ids?, file_names?, output_schema?, thinking_level? })` | Prefer `file_ids` (`file_names` is deprecated) | `{ answer, conversation_id, structured_output?, raw_json? }` |
+| `sources.ask({ question, conversation_id?, reset?, file_ids?, file_names?, output_schema?, thinking_level? })` | Prefer `file_ids` | `Promise<{ answer, conversation_id, structured_output?, raw_json? }>` |
 
-**`thinking_level`**: `'fast'` | `'balanced'` | `'accurate'` (default)
+**thinking_level**: `'fast'` | `'balanced'` | `'accurate'` (default)
 
 ### Extraction
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.extract({ file_ids?, file_names?, user_instruction, output_schema, thinking_level? })` | At least one of `file_ids`/`file_names` required. Prefer `file_ids` (`file_names` is deprecated) | `{ file_ids, file_names, structured_output, raw_json }` |
+| `sources.extract({ file_ids?, file_names?, user_instruction, output_schema, thinking_level? })` | At least one of `file_ids`/`file_names`; prefer `file_ids` | `Promise<{ structured_output, raw_json, file_ids, file_names }>` |
 
 ### RAG
 
 | Method | Parameters | Returns |
 |--------|-----------|---------|
-| `sources.retrieveChunks({ query, file_ids?, file_names? })` | `query`: string. Prefer `file_ids` (`file_names` is deprecated) | `{ query, chunks, total }` |
+| `sources.retrieveChunks({ query, file_ids?, file_names? })` | `query`: string; prefer `file_ids` | `Promise<{ query, total, chunks }>` |
 
-Each chunk: `{ text, file_name?, file_id?, page_number?, score?, metadata? }`
+Each chunk: `{ text, file_id, file_name?, page_number?, score?, metadata? }`
 
 ## Response Types
 
 | Type | Description |
 |------|-------------|
-| `Graphor.PublicSource` | `{ file_name, file_id?, file_size, file_source, file_type, message, project_id, project_name, status, partition_method? }`. `status` values: `"New"`, `"Waiting"`, `"Uploading"`, `"Not parsed"`, `"Processing"`, `"Processed"`, `"Completed"`, `"Failed"`, `"Processing failed"`, `"Upload failed"`, `"Service unavailable"` |
-| `Graphor.SourceAskResponse` | `{ answer, conversation_id, structured_output?, raw_json? }` |
-| `Graphor.SourceExtractResponse` | `{ file_ids, file_names, structured_output, raw_json }` |
-| `Graphor.SourceRetrieveChunksResponse` | `{ query, total, chunks }` |
-| `Graphor.SourceDeleteResponse` | `{ file_name, file_id?, message, project_id, project_name, status }` |
-| `Graphor.SourceLoadElementsResponse` | `{ items, total, page, page_size, total_pages }` |
+| Ingest / reprocess responses | `{ build_id: string }` |
+| `BuildStatus` | `build_id`, `status`, `success`, `file_id`, `file_name`, `error`, `method`, `elements`, pagination fields. **status**: `Pending`, `Processing`, `Completed`, `Processing failed`, `not_found` |
+| List item (source) | `file_id`, `file_name`, `status`, and other metadata |
+| `SourceGetElementsResponse` | `items` (element array), `total`, `page`, `total_pages`, etc. Each element: `element_id`, `element_type`, `text`, `markdown`, `html`, `page_number`, `position`, etc. |
+| `SourceAskResponse` | `answer`, `conversation_id`, `structured_output?`, `raw_json?` |
+| `SourceExtractResponse` | `structured_output`, `raw_json`, `file_ids`, `file_names` |
+| `SourceRetrieveChunksResponse` | `query`, `total`, `chunks` (each with `file_id`, `text`, `page_number`, `score`, etc.) |
+| `SourceDeleteResponse` | `message`, etc. |
 
 ## Error Classes
 
@@ -101,13 +115,11 @@ Each chunk: `{ text, file_name?, file_id?, page_number?, score?, metadata? }`
 
 ## File Upload Input Types
 
-The `file` parameter accepts:
+The `file` parameter in `ingestFile` accepts:
 - `fs.createReadStream(path)` — Node.js file streams
 - `new File([data], name)` — Browser File API
 - `await fetch(url)` — Fetch Response objects
-- `await toFile(buffer, name)` — Buffer/Uint8Array via helper
-
-Import: `import { toFile } from 'graphor'`
+- `await toFile(buffer, name)` — Buffer/Uint8Array via helper: `import { toFile } from 'graphor'`
 
 ## Per-Request Options
 

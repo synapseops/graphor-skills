@@ -1,60 +1,47 @@
 ---
 name: parsing
-description: Process documents after upload, check status, and reprocess if needed.
+description: Poll build status after ingest or reprocess, and reprocess documents when needed.
 metadata:
-  tags: processing, status, parse, reprocess, new
+  tags: processing, status, build status, reprocess, pending, polling
 ---
 
-# Processing Documents
+# Build Status and Reprocessing
 
-Use the Graphor MCP tools for processing. Never make direct API calls.
+After **ingest** (ingest_file, ingest_url, ingest_github, ingest_youtube) or **reprocess**, you receive a **build_id**. The build runs asynchronously. Use the **get_build_status** MCP tool to poll until the job completes and you get **file_id**.
 
-**This step is only required if you did not set a `partition_method` during upload.** If you set `partition_method` at upload time, processing already happened — skip this step entirely and go directly to query (ask, extract, or retrieve chunks).
+## Get build status (polling)
 
-## The workflow
+Call **get_build_status** with the **build_id** returned by any ingest or by reprocess.
 
-```
-1. Upload (without partition_method)  →  status: "New"       (source accepted, NOT processed)
-2. Parse                              →  status: "Processed" (ready to query)
-```
+**Response fields:**
+- **success** — `true` only when the build completed successfully; then **file_id** and **file_name** are present
+- **status** — one of:
+  - **Pending** — request received, build has not started yet; keep polling
+  - **Processing** — build is running; keep polling
+  - **Completed** — build finished successfully; use **file_id**
+  - **Processing failed** — build failed; check **error**
+  - **not_found** — no history yet (e.g. build not started or invalid build_id)
+- **file_id**, **file_name** — present when success is true; use file_id for ask, extract, retrieve_chunks, get_elements, delete_source, reprocess
+- **error** — error message when the build failed
 
-Both calls are **synchronous** — parsing is performed within the parse call itself. There is no need to poll or wait for status changes.
+**Typical loop:** call get_build_status every 2–5 seconds until **success** is true (then use file_id) or until you treat failure (e.g. status === "Processing failed" or error is set).
 
-## Step 1: After upload — status is "New"
-
-When you upload a source without setting `partition_method`, the response returns status `"New"`. This means:
-- The source was accepted and stored
-- It has **NOT** been processed yet
-- It **cannot** be queried yet
-
-**"New" is not an error.** It is the expected initial status.
-
-## Step 2: Call parse to process
-
-Call the parse operation using the `file_id` from the upload response.
-
-Specify a `partition_method` (ordered from lowest to highest accuracy):
-- `basic` — Fast - Text-only extraction (least accurate)
-- `hi_res` — Balanced - High-resolution OCR for scanned documents
-- `hi_res_ft` — Accurate - Hi-res with fine-tuned models
-- `mai` — VLM - Multi-modal AI parsing
-- `graphorlm` — Agentic - Graphor's proprietary pipeline (most accurate, slowest)
-
-If you don't specify a method, Graphor chooses the simplest method depending on the file type.
-
-When the parse call returns, the status will be `"Processed"` — the document is ready to query.
+Optional query params for get_build_status: **suppress_elements**, **suppress_img_base64**, **page**, **page_size** (when you want parsed elements in the response and pagination).
 
 ## Reprocessing
 
-If results are unsatisfactory (garbled text, missing tables, wrong structure), call parse again with a different `partition_method`.
+To re-run the ingestion pipeline on an **existing** source with a different partition method, use the **reprocess** MCP tool.
 
-Use `file_id` to identify the document. `file_name` is deprecated as an identifier.
+- **file_id** (required) — from list_sources or get_build_status
+- **method** (optional) — `fast`, `balanced`, `accurate`, `vlm`, `agentic`
+
+**reprocess** returns a **build_id** (not file_id). Poll **get_build_status(build_id)** the same way as after ingest. When success is true, the **file_id** is unchanged — you keep using the same file_id for that source.
+
+Use reprocess when results were unsatisfactory (e.g. wrong structure, missing tables) and you want to try a different **method**.
 
 ## Anti-patterns
 
-- **Do not skip the parse step if you did not set `partition_method` during upload.** Status will stay `"New"` forever otherwise.
-- **Do not call parse if you DID set `partition_method` during upload.** Processing already completed at upload time. Calling parse again is redundant and wastes time. Go directly to query.
-- **Do not treat `"New"` as an error or loop on it.** It is the expected status after upload without `partition_method`. Call parse to advance.
-- **Do not rely on the `status` field from list_sources to decide whether to parse.** If you set `partition_method` during upload, the document is processed regardless of what status shows. The status field may lag behind actual state.
-- **Do not reprocess without reason.** Only reprocess if results are unsatisfactory.
-- **Use MCP tools.**
+- **Do not use file_id before get_build_status returns success.** Poll until success is true.
+- **Do not treat Pending or Processing as failure.** Keep polling; only treat Processing failed or a non-null error as failure when appropriate.
+- **Do not forget to poll after reprocess.** Reprocess returns build_id; you must poll get_build_status again to confirm completion (file_id stays the same).
+- **Use MCP tools** for get_build_status and reprocess.

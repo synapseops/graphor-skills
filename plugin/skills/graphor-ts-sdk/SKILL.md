@@ -19,68 +19,88 @@ const client = new Graphor({ apiKey: 'grlm_...' });
 
 **Requirements**: TypeScript >= 4.9, Node.js 20+ LTS. Also works in Deno 1.28+, Bun 1.0+, Cloudflare Workers, Vercel Edge Runtime, and browsers.
 
-## Core Workflow: Upload → Process → Ask
+## Core Workflow: Ingest → Poll Build Status → Use file_id
 
-Upload returns status `"New"`. Two paths:
+Ingestion is **asynchronous**. Each ingest method returns an object with **build_id** immediately. Poll **getBuildStatus(build_id)** until `success` is `true` to obtain **file_id**, then use `file_id` for ask, extract, retrieveChunks, getElements, delete, and reprocess.
 
-- **`partition_method` set during upload**: Processing happens automatically. **Skip parse. Go directly to ask/extract/retrieve.** Do not call parse — it would be redundant.
-- **`partition_method` not set**: You must call parse explicitly — it is **synchronous** and returns when done.
-
-> **Note**: The `status` field in the upload response always shows `"New"` regardless of whether processing happened. Do not use status to decide next steps.
-
-### Upload Sources
+### Ingest Sources
 
 ```typescript
+import Graphor from 'graphor';
 import fs from 'fs';
 
-// File upload — supports optional partition_method at upload time
-const source = await client.sources.upload({
-  file: fs.createReadStream('report.pdf'),
-  partition_method: 'hi_res' // optional: basic | hi_res | hi_res_ft | mai | graphorlm
-});
-// IMPORTANT: Store source.file_id for all subsequent operations
+const client = new Graphor();
 
-// URL upload — supports crawl_urls to follow linked pages
-await client.sources.uploadURL({
+// File ingest — returns { build_id }
+const { build_id: buildId } = await client.sources.ingestFile({
+  file: fs.createReadStream('./report.pdf'),
+  method: 'balanced'  // optional: 'fast' | 'balanced' | 'accurate' | 'vlm' | 'agentic'
+});
+
+// Poll until ready (status: Pending → Processing → Completed)
+let fileId: string;
+while (true) {
+  const status = await client.sources.getBuildStatus(buildId);
+  if (status.success && status.file_id) {
+    fileId = status.file_id;
+    console.log('Ready. file_id:', fileId);
+    break;
+  }
+  if (status.error && status.status !== 'not_found' && status.status !== 'Pending' && status.status !== 'Processing') {
+    throw new Error(status.error);
+  }
+  await new Promise(r => setTimeout(r, 2000));
+}
+
+// URL ingest
+const { build_id: urlBuildId } = await client.sources.ingestURL({
   url: 'https://example.com/article',
-  crawl_urls: true // optional: follow and ingest linked pages
+  crawlUrls: true,
+  method: 'balanced'
 });
 
 // GitHub
-await client.sources.uploadGitHub({ url: 'https://github.com/org/repo' });
+const { build_id: ghBuildId } = await client.sources.ingestGitHub({ url: 'https://github.com/org/repo' });
 
 // YouTube
-await client.sources.uploadYoutube({ url: 'https://youtube.com/watch?v=...' });
+const { build_id: ytBuildId } = await client.sources.ingestYoutube({ url: 'https://youtube.com/watch?v=...' });
 ```
 
-For advanced file inputs, use the `toFile` helper:
+**Build status values**: `Pending` (request received, build not started), `Processing`, `Completed`, `Processing failed`, `not_found`. Keep polling until `status.success` is `true` or treat `Processing failed` / non-null `error` as failure.
+
+**Method names**: `ingestFile`, `ingestURL` (capital URL), `ingestGitHub` (capital H), `ingestYoutube`. Parameters use **snake_case** in the request object (e.g. `file_id`, `page_size`).
+
+### Get Build Status
+
 ```typescript
-import { toFile } from 'graphor';
-await client.sources.upload({ file: await toFile(Buffer.from('data'), 'file.txt') });
+const status = await client.sources.getBuildStatus(buildId, {
+  suppress_elements: false,
+  suppress_img_base64: false,
+  page: 1,
+  page_size: 50
+});
+// status.success, status.status, status.file_id, status.file_name, status.error
+// When success: use status.file_id for subsequent calls
 ```
 
-File input types accepted: `fs.createReadStream()`, `new File()`, `await fetch()` Response, `await toFile()`.
+### Reprocess (optional)
 
-### Process (parse)
-
-Only required if `partition_method` was not set during upload. The call is **synchronous** — when it returns, the document is `"Processed"` and ready to query.
+Re-run the pipeline on an existing source with a different partition method. Returns an object with **build_id** — poll getBuildStatus as usual.
 
 ```typescript
-await client.sources.parse({
-  file_id: 'the-file-id',  // preferred over file_name
-  partition_method: 'graphorlm'
+const { build_id: reprocessBuildId } = await client.sources.reprocess({
+  file_id: 'the-file-id',
+  method: 'agentic'
 });
 ```
-
-You can also call parse again to reprocess with a different method if results are unsatisfactory.
 
 ### Ask Questions
 
 ```typescript
 const response = await client.sources.ask({
   question: 'What are the key findings?',
-  file_ids: ['file-id-1', 'file-id-2'],  // preferred over file_names
-  thinking_level: 'accurate'               // fast | balanced | accurate (default)
+  file_ids: ['file-id-1', 'file-id-2'],
+  thinking_level: 'accurate'
 });
 console.log(response.answer);
 
@@ -125,22 +145,29 @@ const result = await client.sources.retrieveChunks({
   query: 'payment terms',
   file_ids: ['contract-file-id']
 });
-// result.chunks: { text, file_name?, file_id?, page_number?, score?, metadata? }[]
-const context = result.chunks.map(c => c.text).join('\n');
+// result.chunks: { text, file_id, file_name?, page_number?, score?, metadata? }[]
+const context = (result.chunks ?? []).map(c => `[${c.file_id}, p.${c.page_number}] ${c.text}`).join('\n');
 ```
 
 ### Manage Sources
 
 ```typescript
 const sources = await client.sources.list();
-const elements = await client.sources.loadElements({
+// Optional: await client.sources.list({ file_ids: ['id1', 'id2'] })
+
+const elements = await client.sources.getElements({
   file_id: 'the-file-id',
   page: 1,
   page_size: 50,
-  filter: { page_numbers: [1, 2], type: 'text' } // optional filtering
+  type: 'Title',              // optional: filter by element type
+  page_numbers: [1, 2],       // optional: restrict to pages
+  elementsToRemove: ['Footer'] // optional: exclude element types
 });
+
 await client.sources.delete({ file_id: 'the-file-id' });
 ```
+
+**getElements** uses flat parameters (no nested `filter`): `type`, `page_numbers`, `elementsToRemove`.
 
 ## Error Handling
 
@@ -153,7 +180,7 @@ try {
   await client.sources.ask({ question: '...' });
 } catch (err) {
   if (err instanceof Graphor.AuthenticationError) { /* 401 - bad API key */ }
-  else if (err instanceof Graphor.NotFoundError) { /* 404 - file not found/not processed */ }
+  else if (err instanceof Graphor.NotFoundError) { /* 404 - source not found */ }
   else if (err instanceof Graphor.RateLimitError) { /* 429 - back off and retry */ }
   else if (err instanceof Graphor.BadRequestError) { /* 400 */ }
   else if (err instanceof Graphor.ConflictError) { /* 409 */ }
@@ -168,13 +195,13 @@ try {
 
 ```typescript
 const client = new Graphor({
-  apiKey: process.env.GRAPHOR_API_KEY,  // default
-  maxRetries: 5,                         // default: 2, exponential backoff
-  timeout: 120_000                       // default: 60_000ms
+  apiKey: process.env.GRAPHOR_API_KEY,
+  maxRetries: 5,
+  timeout: 120_000  // milliseconds
 });
 
 // Per-request overrides
-await client.sources.parse(params, { maxRetries: 3, timeout: 300_000 });
+await client.sources.reprocess({ file_id: 'id', method: 'agentic' }, { maxRetries: 3, timeout: 300_000 });
 ```
 
 ## Type Safety
@@ -182,17 +209,18 @@ await client.sources.parse(params, { maxRetries: 3, timeout: 300_000 });
 The SDK exports typed params and response interfaces:
 
 ```typescript
-const params: Graphor.SourceUploadParams = { file: stream };
-const source: Graphor.PublicSource = await client.sources.upload(params);
+const { build_id } = await client.sources.ingestFile({ file: stream });
+const status = await client.sources.getBuildStatus(build_id);
+// status: { success, status, file_id?, file_name?, error?, ... }
 ```
 
 ## Anti-patterns
 
-- **Do not use `uploadUrl()` or `uploadGithub()`.** The correct method names are `uploadURL()` (capital URL) and `uploadGitHub()` (capital H). The SDK README may show lowercase variants but the actual methods use these capitalizations.
-- **Do not use `file_names` parameter.** It is deprecated. Always use `file_ids`.
-- **Do not query before processing if you did not set `partition_method` during upload.** Call parse first.
-- **Do not call parse after upload if you DID set `partition_method`.** Processing already completed during upload. Calling parse is redundant. Proceed directly to query.
-- **Do not rely on the `status` field to decide whether to parse.** It may show `"New"` even after processing completed. If `partition_method` was set during upload, skip parse.
+- **Do not use `upload` or `uploadURL`/`uploadGitHub`.** Use **ingestFile**, **ingestURL**, **ingestGitHub**, **ingestYoutube**. Method names: `ingestURL` (capital URL), `ingestGitHub` (capital H).
+- **Do not use `parse`.** Use **reprocess** with `file_id` and `method`. It is async and returns `build_id`; poll getBuildStatus.
+- **Do not assume ingest or reprocess is synchronous.** They return `build_id`; always poll **getBuildStatus** until `success` is `true` before using `file_id`.
+- **Do not use a nested `filter` for getElements.** Use flat params: `type`, `page_numbers`, `elementsToRemove`.
+- **Do not use `file_names` when `file_ids` is available.** Prefer `file_ids` for ask, extract, retrieveChunks.
 - **Do not use `oneOf`, `anyOf`, `allOf`, or `$ref` in extraction schemas.** They are not supported.
 - **Do not forget `conversation_id` for follow-up questions.** Without it, context is lost.
 
